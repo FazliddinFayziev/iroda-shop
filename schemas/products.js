@@ -17,6 +17,12 @@ const productSchema = new Schema({
         required: true,
     },
 
+    // Company
+    company: {
+        type: String,
+        required: true,
+    },
+
     // Price
     price: {
         type: Number,
@@ -40,6 +46,12 @@ const productSchema = new Schema({
         type: [String],
         required: true,
     },
+
+    // Image URLS
+    imageUrls: {
+        type: [String],
+        required: false,
+    }
 });
 
 // Models

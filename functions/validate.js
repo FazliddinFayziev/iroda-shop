@@ -9,9 +9,11 @@ const validate = (schema) => (payload) =>
 const JoiSchema = Joi.object({
     name: Joi.string().min(2).required(),
     category: Joi.string().min(2).required(),
+    company: Joi.string().min(2).required(),
     price: Joi.number().min(0).required(),
     desc: Joi.string().min(2).required(),
     size: Joi.array().items(Joi.string()).required(),
+    imageUrls: Joi.array().items(Joi.string()),
 });
 
 // Validation of Banner

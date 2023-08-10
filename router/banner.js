@@ -88,34 +88,45 @@ router.post('/newbanner', upload.array('images'), async (req, res) => {
 
 router.put('/editbanner', upload.array('images'), async (req, res) => {
 
-    const { bannerId } = req.query;
+    try {
 
-    // check validation of product
-    const { error } = validateBanner(req.body);
-    if (error) {
-        return res.send(error.details[0].message);
+        const { bannerId } = req.query;
+
+        // check validation of product
+        const { error } = validateBanner(req.body);
+        if (error) {
+            return res.send(error.details[0].message);
+        }
+
+        // upload image logic (function)
+        const imageUrls = await uploadImage(req.files, res);
+
+        // check id of product (is it valid or not ?)
+        const bannerProductId = await Banner.findById(bannerId);
+        if (!bannerProductId) {
+            return res.status(404).send("Banner ID is not found");
+        }
+
+        // find id of product and update
+        const banner = await Banner.findByIdAndUpdate(bannerId, {
+
+            text_one: req.body.text_one,
+            text_two: req.body.text_two,
+            text_three: req.body.text_three,
+            images: imageUrls
+
+        }, { new: true });
+
+        // save product and send
+        banner.save();
+        res.send(banner)
+
+    } catch (error) {
+
+        console.error("Error:", error);
+        return res.status(500).send("Internal Server Error");
+
     }
-
-    // upload image logic (function)
-    const imageUrls = await uploadImage(req.files, res);
-
-    // check id of product (is it valid or not ?)
-    const bannerProductId = await Banner.findById(bannerId);
-    if (!bannerProductId) {
-        return res.status(404).send("Product ID is not found");
-    }
-
-    // find id of product and update
-    const banner = await Banner.findByIdAndUpdate(bannerId, {
-        text_one: req.body.text_one,
-        text_two: req.body.text_two,
-        text_three: req.body.text_three,
-        images: imageUrls
-    }, { new: true });
-
-    // save product and send
-    banner.save();
-    res.send(banner)
 
 })
 

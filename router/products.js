@@ -103,8 +103,20 @@ router.post('/upload', upload.array('images'), async (req, res) => {
             return res.send(error.details[0].message);
         }
 
-        // upload image logic (funcition)
-        const imageUrls = await uploadImage(req.files, res);
+        // Extract image URLs from request body
+        const imageUrls = req.body.imageUrls || [];
+
+        // Validate image URLs
+        const isValidImageUrls = imageUrls.every(url => url.startsWith("https://storage.googleapis.com"));
+        if (!isValidImageUrls) {
+            return res.status(400).send("Invalid image URLs format");
+        }
+
+        // Upload image logic (function) for file uploads
+        const fileImageUrls = await uploadImage(req.files, res);
+
+        // Combine the file image URLs with the provided URLs
+        const combinedImageUrls = [...imageUrls, ...fileImageUrls];
 
         // new Product
         const { name, category, price, company, desc, size } = req.body;
@@ -115,7 +127,7 @@ router.post('/upload', upload.array('images'), async (req, res) => {
             price,
             desc,
             size,
-            images: imageUrls
+            images: combinedImageUrls
         });
 
         // save and send product
@@ -137,49 +149,61 @@ router.post('/upload', upload.array('images'), async (req, res) => {
 // =======================================================>
 
 router.put('/edit', upload.array('images'), async (req, res) => {
-
     try {
-
-        // get id from query
+        // Get id from query
         const { id } = req.query;
 
-        // check validation of product
+        // Validate product data
         const { error } = validateProduct(req.body);
         if (error) {
-            return res.send(error.details[0].message);
+            return res.status(400).send(error.details[0].message);
         }
 
-        // upload image logic (function)
-        const imageUrls = await uploadImage(req.files, res);
+        // Extract image URLs from request body
+        const imageUrls = req.body.imageUrls || [];
 
-        // check id of product (is it valid or not ?)
+        // Validate image URLs
+        const isValidImageUrls = imageUrls.every(url => url.startsWith("https://storage.googleapis.com"));
+        if (!isValidImageUrls) {
+            return res.status(400).send("Invalid image URLs format");
+        }
+
+        // Upload image logic (function) for file uploads
+        const fileImageUrls = await uploadImage(req.files, res);
+
+        // Combine the file image URLs with the provided URLs
+        const combinedImageUrls = [...imageUrls, ...fileImageUrls];
+
+        // Check if product ID is valid
         const productId = await Product.findById(id);
         if (!productId) {
             return res.status(404).send("Product ID is not found");
         }
 
-        // find id of product and update
-        const product = await Product.findByIdAndUpdate(id, {
+        // Update product data
+        const updatedProductData = {
             name: req.body.name,
             category: req.body.category,
             price: req.body.price,
             desc: req.body.desc,
             size: req.body.size,
-            images: imageUrls
-        }, { new: true });
+            images: combinedImageUrls, // Use the combined image URLs
+        };
 
-        // save product and send
-        product.save();
-        res.send(product)
+        // Update the product
+        const updatedProduct = await Product.findByIdAndUpdate(id, updatedProductData, { new: true });
 
+        // Send the updated product
+        res.send(updatedProduct);
     } catch (error) {
-
-        // handle error
+        // Handle error
+        console.error(error);
         res.status(500).json({ error: 'There is a problem' });
-
     }
-
 });
+
+
+
 
 // =======================================================>
 // Delete Single Product ( DELETE )
