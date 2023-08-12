@@ -170,7 +170,11 @@ router.put('/edit', upload.array('images'), async (req, res) => {
         }
 
         // Upload image logic (function) for file uploads
-        const fileImageUrls = await uploadImage(req.files, res);
+        let fileImageUrls = [];
+        if (req.files && req.files.length > 0) {
+            fileImageUrls = await uploadImage(req.files, res);
+            console.log("fileImageUrls:", fileImageUrls);
+        }
 
         // Combine the file image URLs with the provided URLs
         const combinedImageUrls = [...imageUrls, ...fileImageUrls];
@@ -185,17 +189,23 @@ router.put('/edit', upload.array('images'), async (req, res) => {
         const updatedProductData = {
             name: req.body.name,
             category: req.body.category,
+            company: req.body.company,
             price: req.body.price,
             desc: req.body.desc,
             size: req.body.size,
-            images: combinedImageUrls, // Use the combined image URLs
+            images: combinedImageUrls,
         };
 
         // Update the product
         const updatedProduct = await Product.findByIdAndUpdate(id, updatedProductData, { new: true });
 
+
         // Send the updated product
-        res.send(updatedProduct);
+        const updatedReadyProduct = await updatedProduct.save();
+
+        // Send the updated product
+        res.send(updatedReadyProduct);
+
     } catch (error) {
         // Handle error
         console.error(error);
