@@ -210,28 +210,24 @@ router.put('/edit', upload.array('images'), async (req, res) => {
 // =======================================================>
 
 router.delete('/delete', async (req, res) => {
-
     try {
+        const { deleteId } = req.query;
 
-        const { deleteId } = req.query
-
-        // check id of product (is it valid or not ?)
-        const productId = await Product.findById(deleteId);
-        if (!productId) {
+        // Check if the product exists
+        const product = await Product.findById(deleteId);
+        if (!product) {
             return res.status(404).send("Product ID is not found");
         }
 
-        const product = await Product.findOneAndDelete(deleteId)
+        // Delete the product
+        await Product.findOneAndDelete({ _id: deleteId });
 
-        res.status(200).send(product)
-
+        res.status(200).send("Product deleted successfully");
     } catch (error) {
-
-        // handle error
+        // Handle error
         res.status(500).json({ error: 'There is a problem' });
-
     }
+});
 
-})
 
 module.exports = router; 
