@@ -26,6 +26,7 @@ router.get('/', async (req, res) => {
                 id: product.id,
                 name: product.name,
                 category: product.category,
+                company: product.company,
                 price: product.price,
                 images: product.images[0]
             };
